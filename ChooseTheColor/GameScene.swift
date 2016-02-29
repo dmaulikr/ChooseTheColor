@@ -90,7 +90,7 @@ extension GameScene {
         if let mainLabel = mainLabel {
             mainLabel.fontSize = 100
             mainLabel.fontColor = ColorProvider.offWhiteColor
-            mainLabel.position = CGPoint(x: CGRectGetMidX(frame), y: CGRectGetMidY(frame)+150)
+            mainLabel.position = CGPoint(x: CGRectGetMidX(frame), y: CGRectGetHeight(frame) * 0.8)
             mainLabel.text = "Start!"
             
             addChild(mainLabel)
@@ -109,7 +109,7 @@ extension GameScene {
     }
 }
 
-//MARK: - Helper Functions
+//MARK: - Timer Functions
 extension GameScene {
     
     func hideLabel() {
