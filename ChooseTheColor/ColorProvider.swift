@@ -17,4 +17,5 @@ class ColorProvider {
     static let color1 = UIColor.greenColor()
     static let color2 = UIColor.blueColor()
     static let color3 = UIColor.redColor()
+    
 }

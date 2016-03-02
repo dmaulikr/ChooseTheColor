@@ -20,8 +20,22 @@ class GameScene: SKScene {
     
     var mainLabel = SKLabelNode?()
     var scoreLabel = SKLabelNode?()
+    var timerLabel = SKLabelNode?()
     
+    var colorArrayString = ["Orange", "Green", "Blue", "Red"]
+    var colorArrayChoice = 0
+
+    var tempColor = [ColorProvider.color0, ColorProvider.color1, ColorProvider.color2, ColorProvider.color3]
+    var colorChoice = 0
+    
+    var correctSquare = 0
+    
+    var touchLocation = CGPoint?()
+    var touchedNode = SKNode?()
+    
+    var isAlive = true
     var score = 0
+    var countDownNumber = 12
     
     override func didMoveToView(view: SKView) {
         backgroundColor = ColorProvider.offBlackColor
@@ -33,15 +47,31 @@ class GameScene: SKScene {
         
         spawnMainLabel()
         spawnScoreLabel()
+        spawnTimerLabel()
         
-        hideLabel()
+        randomizeColors()
+        countDownTimer()
+        resetGameVariables()
+        
+//        hideLabel()
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
        /* Called when a touch begins */
         
         for touch in touches {
-            let location = touch.locationInNode(self)
+            touchLocation = touch.locationInNode(self)
+            touchedNode = nodeAtPoint(touchLocation!)
+            
+            if touchedNode?.name != "correct" {
+                isAlive = false
+                gameOverLogic()
+            }
+            if touchedNode?.name == "correct" {
+                addToScore()
+                randomizeColors()
+            }
+            
         }
     }
     
@@ -100,16 +130,27 @@ extension GameScene {
     func spawnScoreLabel() {
         scoreLabel = SKLabelNode(fontNamed: "Futura")
         if let scoreLabel = scoreLabel {
-            scoreLabel.fontSize = 50
+            scoreLabel.fontSize = 40
             scoreLabel.fontColor = ColorProvider.offWhiteColor
-            scoreLabel.position = CGPoint(x: CGRectGetMidX(self.frame), y: CGRectGetMidY(self.frame) * 0.2)
+            scoreLabel.position = CGPoint(x: CGRectGetMidX(self.frame), y: CGRectGetMidY(self.frame) * 0.1)
             scoreLabel.text = "Score: \(score)"
             addChild(scoreLabel)
         }
     }
+    
+    func spawnTimerLabel() {
+        timerLabel = SKLabelNode(fontNamed: "Futura")
+        if let timerLabel = timerLabel {
+            timerLabel.fontSize = 50
+            timerLabel.fontColor = ColorProvider.offWhiteColor
+            timerLabel.position = CGPoint(x: CGRectGetMidX(self.frame), y: CGRectGetMidY(self.frame) * 0.30)
+//            timerLabel.text = "0"
+            addChild(timerLabel)
+        }
+    }
 }
 
-//MARK: - Timer Functions
+// MARK: - Timer Functions
 extension GameScene {
     
     func hideLabel() {
@@ -118,5 +159,142 @@ extension GameScene {
         
         mainLabel?.runAction(SKAction.sequence([wait, fadeOut]))
     }
+    
+    func countDownTimer() {
+        let wait = SKAction.waitForDuration(1.0)
+        let countDown = SKAction.runBlock {
+            self.countDownNumber--
+            
+            if self.countDownNumber <= 10 && self.isAlive {
+                self.timerLabel?.text = "\(self.countDownNumber)"
+            }
+        }
+        let sequence = SKAction.sequence([wait, countDown])
+        runAction(SKAction.repeatAction(sequence, count: countDownNumber))
+    }
 }
 
+// MARK: - Color controller functions
+extension GameScene {
+    
+    func randomizeColors() {
+        colorArrayChoice = Int(round(random() * 3))
+        colorChoice = Int(round(random() * 3))
+        correctSquare = Int(round(random() * 3))
+        
+        printColorCorrectSquare()
+        printColors()
+    }
+    
+    func printColors() {
+        
+        mainLabel?.fontColor = tempColor[colorChoice]
+        mainLabel?.text = "\(colorArrayString[colorArrayChoice])"
+        
+    }
+    
+    func printColorCorrectSquare() {
+        
+        
+        if colorChoice == 0 {
+            square0?.color = tempColor[colorChoice]
+            square1?.color = ColorProvider.color1
+            square2?.color = ColorProvider.color2
+            square3?.color = ColorProvider.color3
+            
+            square0?.name = "correct"
+            square1?.name = "incorrect0"
+            square2?.name = "incorrect1"
+            square3?.name = "incorrect2"
+        }
+        if colorChoice == 1 {
+            square0?.color = ColorProvider.color2
+            square1?.color = tempColor[colorChoice]
+            square2?.color = ColorProvider.color3
+            square3?.color = ColorProvider.color0
+            
+            square0?.name = "incorrect0"
+            square1?.name = "correct"
+            square2?.name = "incorrect2"
+            square3?.name = "incorrect3"
+        }
+        if colorChoice == 2 {
+            square0?.color = ColorProvider.color3
+            square1?.color = ColorProvider.color0
+            square2?.color = tempColor[colorChoice]
+            square3?.color = ColorProvider.color1
+            
+            square0?.name = "incorrect0"
+            square1?.name = "incorrect1"
+            square2?.name = "correct"
+            square3?.name = "incorrect3"
+        }
+        if colorChoice == 3 {
+            square0?.color = ColorProvider.color1
+            square1?.color = ColorProvider.color2
+            square2?.color = ColorProvider.color0
+            square3?.color = tempColor[colorChoice]
+            
+            square0?.name = "incorrect0"
+            square1?.name = "incorrect1"
+            square2?.name = "incorrect2"
+            square3?.name = "correct"
+        }
+    }
+}
+
+// MARK: - Score Functions
+extension GameScene {
+    
+    func addToScore() {
+        score++
+        updateScore()
+    }
+    
+    func updateScore() {
+        scoreLabel?.text = "Score: \(score)"
+    }
+}
+
+// MARK: - Gameover Functions
+extension GameScene {
+    
+    func gameOverLogic() {
+        mainLabel?.fontColor = ColorProvider.offWhiteColor
+        mainLabel?.fontSize = 60
+        mainLabel?.text = "Game Over"
+        
+        timerLabel?.text = "Try Again"
+        
+        square0?.removeFromParent()
+        square1?.removeFromParent()
+        square2?.removeFromParent()
+        square3?.removeFromParent()
+    }
+    
+    func resetTheGame() {
+        let wait = SKAction.waitForDuration(3.0)
+        let gameScene = GameScene(size: self.size)
+        let transition = SKTransition.doorwayWithDuration(1.0)
+        
+        gameScene.scaleMode = SKSceneScaleMode.ResizeFill
+        
+        let changeScene = SKAction.runBlock {
+            self.scene?.view?.presentScene(gameScene, transition: transition)
+        }
+        
+        let sequence = SKAction.sequence([wait, changeScene])
+        runAction(SKAction.repeatAction(sequence, count: 1))
+    }
+    
+    func resetGameVariables() {
+        isAlive = true
+        score = 0
+        countDownNumber = 12
+        
+        spawnSquare0()
+        spawnSquare1()
+        spawnSquare2()
+        spawnSquare3()
+    }
+}
