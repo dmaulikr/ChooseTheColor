@@ -39,7 +39,8 @@ class GameScene: SKScene {
     
     override func didMoveToView(view: SKView) {
         backgroundColor = ColorProvider.offBlackColor
-        
+        resetGameVariables()
+
         spawnSquare0()
         spawnSquare1()
         spawnSquare2()
@@ -51,9 +52,7 @@ class GameScene: SKScene {
         
         randomizeColors()
         countDownTimer()
-        resetGameVariables()
         
-//        hideLabel()
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
@@ -153,13 +152,6 @@ extension GameScene {
 // MARK: - Timer Functions
 extension GameScene {
     
-    func hideLabel() {
-        let wait = SKAction.waitForDuration(1.5)
-        let fadeOut = SKAction.fadeOutWithDuration(1.5)
-        
-        mainLabel?.runAction(SKAction.sequence([wait, fadeOut]))
-    }
-    
     func countDownTimer() {
         let wait = SKAction.waitForDuration(1.0)
         let countDown = SKAction.runBlock {
@@ -167,6 +159,12 @@ extension GameScene {
             
             if self.countDownNumber <= 10 && self.isAlive {
                 self.timerLabel?.text = "\(self.countDownNumber)"
+            }
+            if self.countDownNumber <= 0 {
+                let reset = SKAction.runBlock {
+                    self.resetTheGame()
+                }
+                self.runAction(reset)
             }
         }
         let sequence = SKAction.sequence([wait, countDown])
@@ -180,7 +178,6 @@ extension GameScene {
     func randomizeColors() {
         colorArrayChoice = Int(round(random() * 3))
         colorChoice = Int(round(random() * 3))
-        correctSquare = Int(round(random() * 3))
         
         printColorCorrectSquare()
         printColors()
@@ -270,6 +267,8 @@ extension GameScene {
         square1?.removeFromParent()
         square2?.removeFromParent()
         square3?.removeFromParent()
+        
+        resetTheGame()
     }
     
     func resetTheGame() {
